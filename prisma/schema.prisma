@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id              Int      @id @default(autoincrement())
+  name            String?
+  email           String   @unique
+  passwordHash    String
+  role            String   @default("RESIDENT")
+  createdAt       DateTime @default(now())
+  phone           String?
+  apartmentNumber String?
+  expenses        expenses[]
+}
+
+model expense_categories {
+  id         Int        @id @default(autoincrement())
+  name       String
+  icon       String?
+  created_at DateTime   @default(now())
+  expenses   expenses[]
+}
+
+model expenses {
+  id             Int                @id @default(autoincrement())
+  user_id        Int?
+  building_id    Int?
+  category_id    Int?
+  amount         Decimal            @db.Decimal(10, 2)
+  date           DateTime           @db.Date
+  description    String?
+  document       String?
+  supplier       String?
+  payment_method String?
+  period         String?
+  status         expense_status     @default(PENDING)
+  created_at     DateTime           @default(now())
+  user           users?             @relation(fields: [user_id], references: [id])
+  category       expense_categories? @relation(fields: [category_id], references: [id])
+  invoice_no     String?
+}
+
+enum expense_status {
+  PENDING
+  PAID
+  CANCELLED
+}

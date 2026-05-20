@@ -10,7 +10,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
   try {
     const { id } = await params;
-    const { category_id, amount, date, description, supplier, payment_method, period, status } = await req.json();
+    const { category_id, amount, date, description, supplier, payment_method, period, status, invoice_no } = await req.json();
 
     const expense = await prisma.expenses.update({
       where: { id: Number(id) },
@@ -23,6 +23,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         payment_method,
         period,
         status,
+        invoice_no
       },
     });
     return Response.json({ success: true, expense });

@@ -1,36 +1,32 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { verifyToken } from "@/lib/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
-const publicRoutes = ["/login", "/register"];
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get("token");
 
-export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const { pathname } = request.nextUrl;
+  const isLoginPage = req.nextUrl.pathname === "/login";
 
-  const isPublic = publicRoutes.some(route => pathname.startsWith(route));
-
-  if (isPublic && token) {
-    const payload = await verifyToken(token);
-    if (payload) {
-      return NextResponse.redirect(new URL("/profile", request.url));
-    }
+  if (!token && !isLoginPage) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (!isPublic) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    const payload = await verifyToken(token);
-    if (!payload) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+  if (token && isLoginPage) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/income/:path*",
+    "/expenses/:path*",
+    "/dues/:path*",
+    "/apartments/:path*",
+    "/users/:path*",
+    "/residents/:path*",
+    "/tasks/:path*",
+    "/announcements/:path*",
+    "/login",
+  ],
 };

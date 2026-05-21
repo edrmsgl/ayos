@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -37,6 +37,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const router = useRouter();
   const pathname = usePathname();
+
+  const logoutTimer = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+  const resetTimer = () => {
+    if (logoutTimer.current) {
+      clearTimeout(logoutTimer.current);
+    }
+
+    logoutTimer.current = setTimeout(async () => {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      router.push("/login");
+    }, 1000 * 60 * 15); // 15 dakika
+  };
+
+  const events = [
+    "mousemove",
+    "keydown",
+    "click",
+    "scroll",
+  ];
+
+  events.forEach(event =>
+    window.addEventListener(event, resetTimer)
+  );
+
+  resetTimer();
+
+  return () => {
+    events.forEach(event =>
+      window.removeEventListener(event, resetTimer)
+    );
+
+    if (logoutTimer.current) {
+      clearTimeout(logoutTimer.current);
+    }
+  };
+}, []);
 
   useEffect(() => {
     fetch("/api/profile")

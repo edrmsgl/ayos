@@ -3,32 +3,57 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const publicRoutes = ["/login", "/register"];
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+const SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET!
+);
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
+
   const { pathname } = request.nextUrl;
 
-  const isPublic = publicRoutes.some(route => pathname.startsWith(route));
+  const isPublic = publicRoutes.some(route =>
+    pathname.startsWith(route)
+  );
 
-  // Token varsa login/register'a gitmesin
+  // LOGIN olmuş kullanıcı login sayfasına girmesin
   if (isPublic && token) {
     try {
       await jwtVerify(token, SECRET);
-      return NextResponse.redirect(new URL("/profile", request.url));
+
+      return NextResponse.redirect(
+        new URL("/dashboard", request.url)
+      );
+
     } catch {
-      // token geçersizse devam et
+      const response = NextResponse.next();
+
+      response.cookies.delete("token");
+
+      return response;
     }
   }
 
+  // PRIVATE ROUTES
   if (!isPublic) {
     if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(
+        new URL("/login", request.url)
+      );
     }
+
     try {
       await jwtVerify(token, SECRET);
+
     } catch {
-      return NextResponse.redirect(new URL("/login", request.url));
+      const response = NextResponse.redirect(
+        new URL("/login", request.url)
+      );
+
+      response.cookies.delete("token");
+
+      return response;
     }
   }
 
@@ -36,5 +61,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };

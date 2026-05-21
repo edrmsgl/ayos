@@ -46,6 +46,34 @@ model expenses {
   invoice_no     String?
 }
 
+model income {
+  id          Int      @id @default(autoincrement())
+  daire_no    String   // "1"-"18" veya "K"
+  daire_type  String   // "normal" | "dublex" | "kapici"
+  year        Int
+  month       Int      // 1-12
+  dogalgaz    Decimal  @db.Decimal(10, 2)
+  aidat       Decimal  @db.Decimal(10, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  status      String   @default("PENDING") // PAID | PENDING | WAIVED
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@unique([daire_no, year, month])  // her daire için ay başına tek kayıt
+  @@map("income")
+}
+
+model dues {
+  id          Int      @id @default(autoincrement())
+  daire_no    String
+  daire_type  String
+  year        Int
+  month       Int
+  aidat       Float
+  status      String   @default("PENDING")
+  created_at  DateTime @default(now())
+}
+
 enum expense_status {
   PENDING
   PAID

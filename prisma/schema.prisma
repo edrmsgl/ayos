@@ -64,14 +64,31 @@ model income {
 }
 
 model dues {
-  id          Int      @id @default(autoincrement())
-  daire_no    String
-  daire_type  String
+  id          Int        @id @default(autoincrement())
+  daire_no    String     @db.VarChar(10)
+  daire_type  DaireType  @default(normal)
   year        Int
   month       Int
-  aidat       Float
-  status      String   @default("PENDING")
-  created_at  DateTime @default(now())
+  aidat       Decimal    @db.Decimal(10, 2)
+  status      DueStatus  @default(PENDING)
+  created_at  DateTime   @default(now()) @db.Timestamp(0)
+  updated_at  DateTime   @updatedAt @db.Timestamp(0)
+
+  @@unique([daire_no, year, month], name: "daire_no_year_month")
+  @@index([year, month])
+  @@index([status])
+}
+
+enum DaireType {
+  normal
+  dublex
+  kapici
+}
+
+enum DueStatus {
+  PAID
+  PENDING
+  WAIVED
 }
 
 enum expense_status {
